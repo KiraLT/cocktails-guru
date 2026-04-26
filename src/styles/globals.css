@@ -78,7 +78,3 @@ body {
 		@apply bg-background text-foreground antialiased;
 	}
 }
-
-#disqus_thread iframe {
-	color-scheme: light;
-}

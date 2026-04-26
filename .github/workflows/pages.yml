@@ -50,7 +50,6 @@ jobs:
             - name: Build with Astro
               run: pnpm build
               env:
-                  PUBLIC_DISQUS_NAME: ${{ vars.DISQUS_NAME }}
                   PUBLIC_GA_ID: ${{ vars.GA_ID }}
                   PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
 
