@@ -1,0 +1,137 @@
+---
+import { Navigation } from "@/components/navigation";
+import "../styles/globals.css";
+
+const { title, description, robots, openGraphImage, ogType } = Astro.props;
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const canonicalUrl = new URL(Astro.url.pathname, site).toString();
+const ogImageUrl = openGraphImage?.url
+	? new URL(openGraphImage.url, site).toString()
+	: undefined;
+const gaId = import.meta.env.PUBLIC_GA_ID;
+const showGa = Boolean(gaId);
+const websiteJsonLd = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	name: "Cocktails Guru",
+	url: site.toString(),
+	potentialAction: {
+		"@type": "SearchAction",
+		target: {
+			"@type": "EntryPoint",
+			urlTemplate: new URL("/search/?q={search_term_string}", site).toString(),
+		},
+		"query-input": "required name=search_term_string",
+	},
+});
+const analyticsScript = gaId
+	? `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', '${gaId}');`
+	: "";
+const swScript = `if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+            registrations.forEach((registration) => registration.unregister());
+        }).catch(() => {});
+    })
+}`;
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="application-name" content="Cocktails Guru" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta name="theme-color" content="#0d1117" />
+        <link rel="canonical" href={canonicalUrl} />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <title>{title}</title>
+        {description ? <meta name="description" content={description} /> : null}
+        {robots ? <meta name="robots" content={robots} /> : null}
+        <meta property="og:site_name" content="Cocktails Guru" />
+        <meta property="og:type" content={ogType ?? "website"} />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={title} />
+        {description ? (
+            <meta property="og:description" content={description} />
+        ) : null}
+        {ogImageUrl ? (
+            <meta property="og:image" content={ogImageUrl} />
+        ) : null}
+        {openGraphImage?.width ? (
+            <meta property="og:image:width" content={String(openGraphImage.width)} />
+        ) : null}
+        {openGraphImage?.height ? (
+            <meta property="og:image:height" content={String(openGraphImage.height)} />
+        ) : null}
+        {openGraphImage?.alt ? (
+            <meta property="og:image:alt" content={openGraphImage.alt} />
+        ) : null}
+        <meta name="twitter:card" content={ogImageUrl ? "summary_large_image" : "summary"} />
+        <meta name="twitter:title" content={title} />
+        {description ? (
+            <meta name="twitter:description" content={description} />
+        ) : null}
+        {ogImageUrl ? (
+            <meta name="twitter:image" content={ogImageUrl} />
+        ) : null}
+        {showGa ? (
+            <script
+                async
+                is:inline
+                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            ></script>
+        ) : null}
+        {showGa ? <script is:inline set:html={analyticsScript} /> : null}
+    </head>
+    <body>
+        <script type="application/ld+json" is:inline set:html={websiteJsonLd} />
+        <div class="flex min-h-dvh flex-col">
+            <Navigation client:load />
+            <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col">
+                <main class="flex-1 px-4 pb-10 pt-4 md:px-6 md:pb-14 md:pt-6">
+                    <slot />
+                </main>
+                <footer class="mt-6 border-t border-border/60 px-4 py-6 text-xs text-muted-foreground md:px-6">
+                    <div class="flex flex-col items-center justify-between gap-2 md:flex-row">
+                        <p>© {new Date().getFullYear()} Cocktails Guru. Drink responsibly.</p>
+                        <div class="flex items-center gap-4">
+                            <a href="/" class="hover:text-foreground transition-colors">Home</a>
+                            <a href="/lists/" class="hover:text-foreground transition-colors">Lists</a>
+                            <a
+                                href="https://github.com/KiraLT/cocktails-guru"
+                                rel="nofollow noopener"
+                                target="_blank"
+                                class="hover:text-foreground transition-colors"
+                            >GitHub</a>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <script is:inline set:html={swScript} />
+    </body>
+</html>

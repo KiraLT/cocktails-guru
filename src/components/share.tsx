@@ -1,62 +1,75 @@
-'use client'
-import { QRCodeCanvas } from 'qrcode.react'
-import { useState } from 'react'
-import { useAsync } from 'react-async-hook'
-import { Button, Alert, Join, Input } from 'react-daisyui'
-import { FaCircleInfo } from 'react-icons/fa6'
+import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useId, useState } from "react";
+import { FaCheck, FaCopy, FaDownload } from "react-icons/fa6";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function Share() {
-    const [copied, setCopied] = useState(false)
-    const { result: url } = useAsync(async () => window.location.href, [])
-    const id = `share-${url}`
+	const [copied, setCopied] = useState(false);
+	const [url, setUrl] = useState("");
+	const canvasId = useId();
 
-    return (
-        <>
-            <Alert status="info" className="mb-2" icon={<FaCircleInfo />}>
-                You can safely share this link to the list
-            </Alert>
-            <Join className="w-full">
-                <Input
-                    disabled={true}
-                    value={url ?? ''}
-                    className="join-item w-full"
-                />
-                <Button
-                    className="join-item"
-                    color={'neutral'}
-                    onClick={() => {
-                        navigator.clipboard.writeText(url ?? '')
-                        setCopied(true)
-                    }}
-                >
-                    {copied ? 'Copied' : 'Copy'}
-                </Button>
-            </Join>
-            <div className="flex flex-col items-center mt-3">
-                <QRCodeCanvas value={url ?? ''} size={264} id={id} />
-                <Button
-                    className="mt-5"
-                    color="primary"
-                    variant="outline"
-                    onClick={() => {
-                        const canvas = document.getElementById(id)
-                        console.log(canvas)
-                        if (canvas instanceof HTMLCanvasElement) {
-                            const pngUrl = canvas
-                                .toDataURL('image/png')
-                                .replace('image/png', 'image/octet-stream')
-                            let downloadLink = document.createElement('a')
-                            downloadLink.href = pngUrl
-                            downloadLink.download = `share.png`
-                            document.body.appendChild(downloadLink)
-                            downloadLink.click()
-                            document.body.removeChild(downloadLink)
-                        }
-                    }}
-                >
-                    {'Download QR'}
-                </Button>
-            </div>
-        </>
-    )
+	useEffect(() => {
+		setUrl(window.location.href);
+	}, []);
+
+	useEffect(() => {
+		if (!copied) return;
+		const timer = setTimeout(() => setCopied(false), 1500);
+		return () => clearTimeout(timer);
+	}, [copied]);
+
+	const handleCopy = async () => {
+		if (!url) return;
+		try {
+			await navigator.clipboard.writeText(url);
+			setCopied(true);
+		} catch {
+			setCopied(false);
+		}
+	};
+
+	const handleDownload = () => {
+		const canvas = document.getElementById(canvasId);
+		if (!(canvas instanceof HTMLCanvasElement)) return;
+		const pngUrl = canvas.toDataURL("image/png");
+		const link = document.createElement("a");
+		link.href = pngUrl;
+		link.download = "cocktails-guru-list.png";
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	};
+
+	return (
+		<div className="space-y-4">
+			<div className="flex w-full gap-2">
+				<Input readOnly value={url} className="flex-1" aria-label="Share URL" />
+				<Button
+					variant={copied ? "default" : "secondary"}
+					onClick={handleCopy}
+					aria-label="Copy link"
+				>
+					{copied ? <FaCheck /> : <FaCopy />}
+					<span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
+				</Button>
+			</div>
+			{url && (
+				<div className="flex flex-col items-center gap-3 rounded-xl border border-border/60 bg-background p-5">
+					<QRCodeCanvas
+						value={url}
+						size={220}
+						id={canvasId}
+						bgColor="#ffffff"
+						fgColor="#000000"
+						className="rounded-md"
+					/>
+					<Button variant="outline" size="sm" onClick={handleDownload}>
+						<FaDownload />
+						Download QR
+					</Button>
+				</div>
+			)}
+		</div>
+	);
 }

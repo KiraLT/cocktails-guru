@@ -1,0 +1,16 @@
+name: Tom Collins
+description: >
+    The Tom Collins is a refreshing 19th-century classic of gin, lemon juice, simple syrup, and soda water, served tall over ice.
+    Often credited to bartender John Collins of London's Limmer's Hotel, it gained fame in the United States during the 1874 "Great Tom Collins Hoax".
+    Its bright citrus and effervescent finish have kept it a fixture of summer cocktail menus for generations.
+instructions:
+    - In a shaker, combine gin, simple syrup, and lemon juice. Shake well.
+    - Pour into a chilled Collins glass filled with ice.
+    - Top with soda water.
+    - Gently stir to combine, but not so much so that you lose carbonation.
+    - Garnish with a lemon slice.
+ingredients:
+    gin: 1 ½ oz
+    lemon juice: ¾ oz
+    club soda: 4 oz
+    simple-syrup: ½ oz

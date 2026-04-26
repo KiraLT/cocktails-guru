@@ -1,0 +1,269 @@
+---
+import { Image } from "astro:assets";
+import { titleCase } from "common-stuff";
+import type * as Schema from "schema-dts";
+import { Comments } from "@/components/comments";
+import type {
+	Ingredient,
+	IngredientData,
+	Recipe as RecipeType,
+} from "@/types/content";
+import { Ingredients } from "./ingredients";
+
+interface Props {
+	recipe:
+		| RecipeType
+		| { slug: string; data: IngredientData; image: RecipeType["image"] };
+	ingredientIndex: Record<string, Ingredient>;
+}
+
+const { recipe, ingredientIndex } = Astro.props;
+const recommended =
+	"recommended" in recipe.data ? recipe.data.recommended : undefined;
+const isSignature =
+	"labels" in recipe.data && recipe.data.labels?.includes("signature");
+const ingredientCount = recipe.data.ingredients
+	? Object.keys(recipe.data.ingredients).length
+	: 0;
+const stepCount = recipe.data.instructions?.length ?? 0;
+const cleanDescription = recipe.data.description?.replace(/\s+/g, " ").trim();
+const imageUrl = new URL(recipe.image.src, Astro.site ?? Astro.url).toString();
+
+const jsonLd =
+	recipe.data.ingredients && recipe.data.instructions
+		? JSON.stringify({
+				"@context": "https://schema.org",
+				"@type": "Recipe",
+				name: recipe.data.name,
+				description: cleanDescription ?? "",
+				image: imageUrl,
+				recipeIngredient: Object.entries(recipe.data.ingredients).map(
+					([ingredient, quantity]) =>
+						`${quantity} ${titleCase(ingredient.split("-").join(" "))}`,
+				),
+				recipeInstructions: recipe.data.instructions.map((v) => ({
+					"@type": "HowToStep",
+					text: v,
+				})),
+			} satisfies Schema.WithContext<Schema.Recipe>)
+		: undefined;
+---
+
+<article class="space-y-8 md:space-y-10">
+	{jsonLd && <script type="application/ld+json" is:inline set:html={jsonLd} />}
+
+	<header class="relative md:isolate md:overflow-hidden md:rounded-2xl md:border md:border-border/60 md:bg-card/40">
+		<div
+			class="pointer-events-none absolute inset-0 hidden md:block"
+			aria-hidden="true"
+		>
+			<Image
+				src={recipe.image}
+				alt=""
+				loading="eager"
+				widths={[320]}
+				quality={45}
+				sizes="320px"
+				class="h-full w-full scale-125 object-cover opacity-30 blur-3xl"
+			/>
+			<div
+				class="absolute inset-0 bg-linear-to-tr from-background/80 via-background/40 to-background/70"
+			>
+			</div>
+		</div>
+
+		<div
+			class="relative grid gap-4 md:grid-cols-[minmax(0,1fr)_260px] md:items-center md:gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8"
+		>
+			<div class="order-2 space-y-3 md:order-1 md:py-5 md:pl-5 lg:py-6 lg:pl-6">
+				<h1
+					class="font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground max-md:sr-only lg:text-4xl"
+				>
+					{recipe.data.name}
+				</h1>
+				{
+					recipe.data.description && (
+						<p class="max-w-prose text-sm leading-relaxed text-muted-foreground">
+							{cleanDescription}
+						</p>
+					)
+				}
+				{(ingredientCount > 0 || stepCount > 0) && (
+					<dl class="flex gap-6 text-sm text-muted-foreground md:hidden">
+						{ingredientCount > 0 && (
+							<div>
+								<dt class="text-xs uppercase tracking-wider">Ingredients</dt>
+								<dd class="mt-0.5 text-lg font-semibold text-foreground">
+									{ingredientCount}
+								</dd>
+							</div>
+						)}
+						{stepCount > 0 && (
+							<div>
+								<dt class="text-xs uppercase tracking-wider">Steps</dt>
+								<dd class="mt-0.5 text-lg font-semibold text-foreground">
+									{stepCount}
+								</dd>
+							</div>
+						)}
+					</dl>
+				)}
+			</div>
+
+			<div
+				class="group relative order-1 -mx-4 -mt-4 overflow-hidden bg-muted/30 md:order-2 md:m-0 md:aspect-4/3"
+			>
+				<Image
+					src={recipe.image}
+					alt={recipe.data.name}
+					loading="eager"
+					fetchpriority="high"
+					sizes="(min-width: 1024px) 380px, (min-width: 768px) 260px, 100vw"
+					class="h-[30svh] max-h-70 min-h-48 w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105 md:h-full md:max-h-none md:min-h-0"
+				/>
+				<div
+					class="pointer-events-none absolute inset-0 bg-linear-to-t from-background via-background/70 to-transparent md:hidden"
+					aria-hidden="true"
+				>
+				</div>
+				<div
+					class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-2/5 bg-linear-to-t from-black/55 to-transparent md:block"
+					aria-hidden="true"
+				>
+				</div>
+				<div class="absolute inset-x-0 bottom-0 space-y-2 px-4 pb-4 md:hidden">
+					{
+						isSignature && (
+							<span class="inline-flex items-center rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground backdrop-blur">
+								Signature
+							</span>
+						)
+					}
+					<p
+						aria-hidden="true"
+						class="font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+					>
+						{recipe.data.name}
+					</p>
+				</div>
+				{
+					isSignature && (
+						<span class="absolute right-2.5 top-2.5 hidden items-center gap-1 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur md:inline-flex">
+							<span aria-hidden="true">★</span>
+							Signature
+						</span>
+					)
+				}
+				{(ingredientCount > 0 || stepCount > 0) && (
+					<dl class="absolute inset-x-3 bottom-3 hidden gap-2 md:flex">
+						{ingredientCount > 0 && (
+							<div class="inline-flex items-baseline gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider backdrop-blur">
+								<dt class="text-white/80">Ingredients</dt>
+								<dd class="text-sm font-semibold normal-case text-white">
+									{ingredientCount}
+								</dd>
+							</div>
+						)}
+						{stepCount > 0 && (
+							<div class="inline-flex items-baseline gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider backdrop-blur">
+								<dt class="text-white/80">Steps</dt>
+								<dd class="text-sm font-semibold normal-case text-white">
+									{stepCount}
+								</dd>
+							</div>
+						)}
+					</dl>
+				)}
+			</div>
+		</div>
+	</header>
+
+	<div class="grid gap-6 md:gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+		<div class="order-2 space-y-6 lg:order-1">
+			{
+				recipe.data.instructions && (
+					<section class="rounded-xl border border-border/60 bg-card p-5 md:p-6">
+						<div class="flex items-center justify-between">
+							<h2 class="font-serif text-lg font-semibold">Instructions</h2>
+							<span class="text-xs uppercase tracking-wider text-muted-foreground">
+								{recipe.data.instructions.length} steps
+							</span>
+						</div>
+						<ol class="mt-4 space-y-4">
+							{recipe.data.instructions.map((v, index) => (
+								<li class="flex gap-4">
+									<span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+										{index + 1}
+									</span>
+									<p class="pt-0.5 text-sm leading-relaxed text-foreground/90">
+										{v}
+									</p>
+								</li>
+							))}
+						</ol>
+					</section>
+				)
+			}
+
+			{
+				recipe.data.tips && (
+					<section class="rounded-xl border border-border/60 bg-card p-5 md:p-6">
+						<h2 class="font-serif text-lg font-semibold">Tips & Tricks</h2>
+						<ul class="mt-4 space-y-3">
+							{recipe.data.tips.map((v) => (
+								<li class="flex gap-3 text-sm">
+									<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+									<span class="text-foreground/90">{v}</span>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			{
+				recommended && (
+					<section class="rounded-xl border border-border/60 bg-card p-5 md:p-6">
+						<h2 class="font-serif text-lg font-semibold">Recommended</h2>
+						<ul class="mt-4 space-y-3">
+							{recommended.map((v) => (
+								<li class="rounded-lg border border-border/60 p-3">
+									<a
+										href={v.url}
+										rel="nofollow noopener"
+										target="_blank"
+										class="font-semibold text-foreground hover:underline"
+									>
+										{v.name}
+									</a>
+									<p class="mt-1 text-sm text-muted-foreground">
+										{v.description}
+									</p>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			<Comments
+				name={recipe.data.name}
+				className="rounded-xl border border-border/60 bg-card p-5 md:p-6"
+				client:load
+			/>
+		</div>
+
+		<div class="order-1 lg:order-2">
+			{
+				recipe.data.ingredients && (
+					<Ingredients
+						ingredients={recipe.data.ingredients}
+						ingredientIndex={ingredientIndex}
+						className="lg:sticky lg:top-20"
+						client:load
+					/>
+				)
+			}
+		</div>
+	</div>
+</article>

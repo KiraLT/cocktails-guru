@@ -1,0 +1,33 @@
+---
+import { sortBy } from "common-stuff";
+import RecipesGrid from "@/components/recipes-grid.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllRecipes } from "@/lib/recipes-data";
+
+const allRecipes = await getAllRecipes();
+const recipes = sortBy(allRecipes, (recipe) =>
+	recipe.data.labels?.includes("signature"),
+);
+---
+
+<BaseLayout
+    title="Cocktails Guru — Signature Cocktail Recipes"
+    description="Explore our curated selection of exceptional cocktail recipes, discover new favorites, and master the art of cocktail creation."
+    openGraphImage={{
+        url: "/web-app-manifest-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "Cocktails Guru",
+    }}
+>
+    <section class="mb-6 md:mb-8">
+        <h1 class="font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Signature Cocktails
+        </h1>
+        <p class="mt-2 text-sm text-muted-foreground md:text-base">
+            Explore standout classics and modern favorites picked for flavor,
+            balance, and easy home mixing.
+        </p>
+    </section>
+    {recipes.length > 0 && <RecipesGrid recipes={recipes} />}
+</BaseLayout>

@@ -1,0 +1,49 @@
+---
+import { getImage } from "astro:assets";
+import RecipeView from "@/components/recipe/view.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllIngredients } from "@/lib/ingredients-data";
+import type { Ingredient } from "@/types/content";
+
+export async function getStaticPaths() {
+	const ingredients = await getAllIngredients();
+	return ingredients.map((ingredient) => ({
+		params: { slug: ingredient.slug },
+		props: { ingredient },
+	}));
+}
+
+const { ingredient } = Astro.props;
+const ingredients = await getAllIngredients();
+const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
+	(acc, entry) => {
+		acc[entry.slug] = entry;
+		return acc;
+	},
+	{},
+);
+
+const ogImage = await getImage({
+	src: ingredient.image,
+	width: 1200,
+	format: "jpg",
+	quality: 80,
+});
+const cleanDescription = ingredient.data.description
+	?.replace(/\s+/g, " ")
+	.trim();
+---
+
+<BaseLayout
+    title={`${ingredient.data.name} | Cocktails Guru`}
+    description={cleanDescription}
+    ogType="article"
+    openGraphImage={{
+        url: ogImage.src,
+        width: ogImage.attributes.width,
+        height: ogImage.attributes.height,
+        alt: ingredient.data.name,
+    }}
+>
+	<RecipeView recipe={ingredient} ingredientIndex={ingredientIndex} />
+</BaseLayout>

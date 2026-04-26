@@ -1,0 +1,15 @@
+---
+import ListContent from "@/components/pages/ListContent";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllRecipes } from "@/lib/recipes-data";
+
+const recipes = await getAllRecipes();
+---
+
+<BaseLayout
+    title="Create/edit list"
+    description="Create your unique cocktail recipe lists, share your mixology passion, and inspire others. Our 'Create and Share Cocktails' page lets you craft personalized cocktail lists to share with the world. Start your mixology journey with us today!"
+    robots="noindex, nofollow"
+>
+    <ListContent recipes={recipes} client:load />
+</BaseLayout>

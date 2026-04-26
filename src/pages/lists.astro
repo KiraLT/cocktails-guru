@@ -1,0 +1,30 @@
+---
+import { FaPlus } from "react-icons/fa6";
+import ListsContent from "@/components/pages/ListsContent";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="My lists | Cocktails Guru"
+    description={'Discover, explore, and manage your custom-made cocktail recipes with ease. Our "My Cocktail Lists" page allows you to access all your favorite cocktail creations in one place.'}
+    robots="noindex, nofollow"
+>
+    <section class="mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
+        <div>
+            <h1 class="font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                My lists
+            </h1>
+            <p class="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+                Save your favorite cocktail collections and edit them anytime.
+            </p>
+        </div>
+        <a
+            href="/list/"
+            class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+            <FaPlus />
+            <span>Create list</span>
+        </a>
+    </section>
+    <ListsContent client:load />
+</BaseLayout>

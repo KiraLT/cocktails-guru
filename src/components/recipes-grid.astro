@@ -1,0 +1,67 @@
+---
+import { Image } from "astro:assets";
+import { titleCase } from "common-stuff";
+import type { Recipe } from "@/types/content";
+
+interface Props {
+	recipes: Recipe[];
+}
+
+const { recipes } = Astro.props;
+
+function formatIngredient(name: string): string {
+	return titleCase(name.split("-").join(" "));
+}
+---
+
+<div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+  {recipes.map((recipe) => {
+    const isSignature = recipe.data.labels?.includes("signature");
+    const ingredientNames = Object.keys(recipe.data.ingredients ?? {});
+    const visibleTags = ingredientNames.slice(0, 3);
+    const overflow = ingredientNames.length - visibleTags.length;
+    return (
+      <a
+        href={`/recipes/${recipe.slug}/`}
+        class="group relative block aspect-square overflow-hidden rounded-2xl bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <Image
+          src={recipe.image}
+          alt={recipe.data.name}
+          loading="lazy"
+          sizes="(min-width: 768px) 33vw, 100vw"
+          class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+        <div
+          class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent"
+          aria-hidden="true"
+        />
+        {isSignature && (
+          <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur">
+            <span aria-hidden="true">★</span>
+            Signature
+          </span>
+        )}
+        <div class="absolute inset-x-4 bottom-3.5 space-y-2">
+          <h3 class="font-serif text-lg font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] md:text-xl">
+            {recipe.data.name}
+          </h3>
+          {visibleTags.length > 0 && (
+            <ul class="flex flex-nowrap gap-1.5 overflow-hidden mask-[linear-gradient(to_right,black_85%,transparent)]">
+              {visibleTags.map((name) => (
+                <li class="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white/95 backdrop-blur-sm">
+                  {formatIngredient(name)}
+                </li>
+              ))}
+              {overflow > 0 && (
+                <li class="shrink-0 whitespace-nowrap rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/75 backdrop-blur-sm">
+                  +{overflow} more
+                </li>
+              )}
+            </ul>
+          )}
+        </div>
+      </a>
+    );
+  })}
+</div>

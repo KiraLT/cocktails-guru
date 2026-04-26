@@ -1,0 +1,19 @@
+name: Old-Fashioned
+description: >
+    The Old-Fashioned is a classic cocktail that dates back to the 19th century.
+    With its simple yet sophisticated combination of bourbon, sugar, and bitters, it's a timeless drink that highlights the rich flavors of the whiskey.
+instructions:
+    - Mix simple syrup with bitters in old-fashioned glass.
+    - Add huge ice cube and pour whiskey over it. Stir for 20 seconds.
+    - Run over the rim of the glass with an orange twist and drop it in. Add a cherry on top.
+ingredients:
+    whiskey: 2 oz
+    simple-syrup: ¼ oz
+    bitter: 2 dashes
+    orange-bitter: 2 dashes
+tips:
+    - Use a high-quality bourbon or rye whiskey.
+    - Adjust the amount of sugar to suit your taste preferences.
+    - Experiment with different types of bitters for a unique twist on the classic recipe.
+labels:
+    - signature

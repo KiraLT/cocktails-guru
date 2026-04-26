@@ -9,13 +9,13 @@ If you'd like to request a new cocktail recipe to be added to the website, pleas
 [Request a Recipe](https://github.com/KiraLT/cocktails-guru/issues/new?assignees=&labels=&projects=&template=reciple-request.md&title=)
 
 Make sure to fill out the issue template with as much detail as possible.
-s
 
 ## Pre-requisites
 
-This project uses npm (node package manager) for dependency management and Node.js for the runtime environment. Please ensure that you have these installed on your system before proceeding:
+This project uses pnpm for dependency management and Node.js for the runtime environment. Please ensure that you have these installed on your system before proceeding:
 
--   Node.js (version 22 or newer)
+- Node.js (version 22 or newer)
+- pnpm (via Corepack)
 
 ## Getting Started
 
@@ -24,7 +24,8 @@ This project uses npm (node package manager) for dependency management and Node.
 Install the required dependencies:
 
 ```bash
-npm install
+corepack enable
+pnpm install
 ```
 
 ### Start the development server
@@ -32,7 +33,7 @@ npm install
 To start the development server, use the following command:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Your local copy of the project should now be running at `http://localhost:3000`.
@@ -42,7 +43,21 @@ Your local copy of the project should now be running at `http://localhost:3000`.
 When you're ready to build the project for production, use the following command:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
-This will create a production-ready version of the project in the `out/` directory.
+This will create a production-ready version of the project in the `dist/` directory.
+
+### Preview the production build
+
+```bash
+pnpm run preview
+```
+
+### Lint and format
+
+```bash
+pnpm run lint
+pnpm run lint:biome
+pnpm run format:biome
+```

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /list/
+Disallow: /lists/
+Disallow: /search/
+
+Sitemap: https://cocktailsguru.me/sitemap-index.xml

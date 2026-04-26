@@ -1,0 +1,14 @@
+name: Mojito
+description: >
+    The Mojito, a refreshing cocktail with roots in 16th-century Havana, Cuba, is a delightful blend of rum, mint, lime, sugar, and soda water.
+    Born out of local Cuban tradition, this minty-fresh libation showcases the perfect harmony of sweet, sour, and herbaceous flavors, making it a perennial favorite for hot summer days.
+instructions:
+    - Drop lime wedges, mint leaves and simple syrup into base of glass. Muddle well.
+    - Add ice and rum before topping with club soda.
+    - Garnish with a lime wedge and a mint sprig.
+ingredients:
+    white rum: ½ oz
+    lime: ½
+    mint leaves: '10'
+    club soda: 4 oz
+    simple-syrup: ½ oz
