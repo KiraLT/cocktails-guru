@@ -11,6 +11,13 @@ const recipes = defineCollection({
 		instructions: z.array(z.string()),
 		tips: z.array(z.string()).optional(),
 		labels: z.array(z.enum(["signature"])).optional(),
+		prepTimeMinutes: z.number().int().positive().optional(),
+		cuisine: z.string().optional(),
+		glass: z.string().optional(),
+		garnish: z.string().optional(),
+		servingYield: z.string().optional(),
+		keywords: z.array(z.string()).optional(),
+		published: z.string().optional(),
 	}),
 });
 

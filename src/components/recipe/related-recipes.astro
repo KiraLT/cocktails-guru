@@ -1,0 +1,62 @@
+---
+import RecipesGrid from "@/components/recipes-grid.astro";
+import type { Recipe } from "@/types/content";
+
+interface Props {
+	current: Recipe;
+	allRecipes: Recipe[];
+	max?: number;
+}
+
+const { current, allRecipes, max = 6 } = Astro.props;
+
+const currentIngredients = new Set(Object.keys(current.data.ingredients ?? {}));
+
+const scored = allRecipes
+	.filter((recipe) => recipe.slug !== current.slug)
+	.map((recipe) => {
+		const ingredients = Object.keys(recipe.data.ingredients ?? {});
+		const overlap = ingredients.reduce(
+			(sum, name) => (currentIngredients.has(name) ? sum + 1 : sum),
+			0,
+		);
+		const sameCuisine =
+			current.data.cuisine && recipe.data.cuisine === current.data.cuisine
+				? 1
+				: 0;
+		return { recipe, score: overlap * 2 + sameCuisine };
+	})
+	.filter(({ score }) => score > 0)
+	.sort((a, b) => b.score - a.score)
+	.slice(0, max)
+	.map(({ recipe }) => recipe);
+
+const fallback = scored.length > 0
+	? scored
+	: allRecipes
+			.filter((recipe) => recipe.slug !== current.slug)
+			.filter((recipe) => recipe.data.labels?.includes("signature"))
+			.slice(0, max);
+
+const related = fallback;
+---
+
+{related.length > 0 && (
+	<section class="space-y-4 md:space-y-5" aria-labelledby="related-heading">
+		<div class="flex items-end justify-between gap-4">
+			<h2
+				id="related-heading"
+				class="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+			>
+				You might also like
+			</h2>
+			<a
+				href="/"
+				class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+			>
+				All cocktails →
+			</a>
+		</div>
+		<RecipesGrid recipes={related} />
+	</section>
+)}

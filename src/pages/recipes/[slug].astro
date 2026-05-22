@@ -4,17 +4,26 @@ import RecipeView from "@/components/recipe/view.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllIngredients } from "@/lib/ingredients-data";
 import { getAllRecipes } from "@/lib/recipes-data";
-import type { Ingredient } from "@/types/content";
+import {
+	breadcrumbJsonLd,
+	cleanText,
+	recipeJsonLd,
+	truncateDescription,
+} from "@/lib/seo";
+import type { Ingredient, Recipe } from "@/types/content";
 
 export async function getStaticPaths() {
 	const recipes = await getAllRecipes();
 	return recipes.map((recipe) => ({
 		params: { slug: recipe.slug },
-		props: { recipe },
+		props: { recipe, allRecipes: recipes },
 	}));
 }
 
-const { recipe } = Astro.props;
+const { recipe, allRecipes } = Astro.props as {
+	recipe: Recipe;
+	allRecipes: Recipe[];
+};
 const ingredients = await getAllIngredients();
 const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 	(acc, ingredient) => {
@@ -24,25 +33,93 @@ const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 	{},
 );
 
-const ogImage = await getImage({
-	src: recipe.image,
-	width: 1200,
-	format: "jpg",
-	quality: 80,
+const [ogLandscape, recipeSquare, recipe4x3, recipe16x9] = await Promise.all([
+	getImage({
+		src: recipe.image,
+		width: 1200,
+		height: 630,
+		format: "jpg",
+		quality: 80,
+		fit: "cover",
+		position: "center",
+	}),
+	getImage({
+		src: recipe.image,
+		width: 1200,
+		height: 1200,
+		format: "jpg",
+		quality: 80,
+		fit: "cover",
+		position: "center",
+	}),
+	getImage({
+		src: recipe.image,
+		width: 1200,
+		height: 900,
+		format: "jpg",
+		quality: 80,
+		fit: "cover",
+		position: "center",
+	}),
+	getImage({
+		src: recipe.image,
+		width: 1600,
+		height: 900,
+		format: "jpg",
+		quality: 80,
+		fit: "cover",
+		position: "center",
+	}),
+]);
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const canonicalUrl = new URL(Astro.url.pathname, site).toString();
+const fullDescription = cleanText(recipe.data.description);
+const metaDescription = truncateDescription(fullDescription, 155);
+
+const imageUrls = [recipeSquare.src, recipe4x3.src, recipe16x9.src].map((src) =>
+	new URL(src, site).toString(),
+);
+
+const recipeLd = recipeJsonLd(recipe, {
+	siteUrl: site.toString(),
+	canonicalUrl,
+	imageUrls,
 });
-const cleanDescription = recipe.data.description?.replace(/\s+/g, " ").trim();
+
+const breadcrumbLd = breadcrumbJsonLd(
+	[
+		{ name: "Home", url: "/" },
+		{ name: recipe.data.name, url: Astro.url.pathname },
+	],
+	site.toString(),
+);
 ---
 
 <BaseLayout
     title={`${recipe.data.name} Recipe | Cocktails Guru`}
-    description={cleanDescription}
+    description={metaDescription}
     ogType="article"
     openGraphImage={{
-        url: ogImage.src,
-        width: ogImage.attributes.width,
-        height: ogImage.attributes.height,
-        alt: recipe.data.name,
+        url: ogLandscape.src,
+        width: ogLandscape.attributes.width,
+        height: ogLandscape.attributes.height,
+        alt: `${recipe.data.name} cocktail`,
     }}
 >
-	<RecipeView recipe={recipe} ingredientIndex={ingredientIndex} />
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(recipeLd)}
+    />
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(breadcrumbLd)}
+    />
+    <RecipeView
+        recipe={recipe}
+        ingredientIndex={ingredientIndex}
+        allRecipes={allRecipes}
+    />
 </BaseLayout>

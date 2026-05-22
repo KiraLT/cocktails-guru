@@ -1,7 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { titleCase } from "common-stuff";
-import type * as Schema from "schema-dts";
+import RelatedRecipes from "@/components/recipe/related-recipes.astro";
 import type {
 	Ingredient,
 	IngredientData,
@@ -14,9 +13,10 @@ interface Props {
 		| RecipeType
 		| { slug: string; data: IngredientData; image: RecipeType["image"] };
 	ingredientIndex: Record<string, Ingredient>;
+	allRecipes?: RecipeType[];
 }
 
-const { recipe, ingredientIndex } = Astro.props;
+const { recipe, ingredientIndex, allRecipes } = Astro.props;
 const recommended =
 	"recommended" in recipe.data ? recipe.data.recommended : undefined;
 const isSignature =
@@ -26,31 +26,13 @@ const ingredientCount = recipe.data.ingredients
 	: 0;
 const stepCount = recipe.data.instructions?.length ?? 0;
 const cleanDescription = recipe.data.description?.replace(/\s+/g, " ").trim();
-const imageUrl = new URL(recipe.image.src, Astro.site ?? Astro.url).toString();
-
-const jsonLd =
-	recipe.data.ingredients && recipe.data.instructions
-		? JSON.stringify({
-				"@context": "https://schema.org",
-				"@type": "Recipe",
-				name: recipe.data.name,
-				description: cleanDescription ?? "",
-				image: imageUrl,
-				recipeIngredient: Object.entries(recipe.data.ingredients).map(
-					([ingredient, quantity]) =>
-						`${quantity} ${titleCase(ingredient.split("-").join(" "))}`,
-				),
-				recipeInstructions: recipe.data.instructions.map((v) => ({
-					"@type": "HowToStep",
-					text: v,
-				})),
-			} satisfies Schema.WithContext<Schema.Recipe>)
-		: undefined;
+const isRecipe = "ingredients" in recipe.data && "instructions" in recipe.data;
+const recipeData = isRecipe
+	? (recipe.data as RecipeType["data"])
+	: undefined;
 ---
 
 <article class="space-y-8 md:space-y-10">
-	{jsonLd && <script type="application/ld+json" is:inline set:html={jsonLd} />}
-
 	<header class="relative md:isolate md:overflow-hidden md:rounded-2xl md:border md:border-border/60 md:bg-card/40">
 		<div
 			class="pointer-events-none absolute inset-0 hidden md:block"
@@ -75,8 +57,14 @@ const jsonLd =
 			class="relative grid gap-4 md:grid-cols-[minmax(0,1fr)_260px] md:items-center md:gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8"
 		>
 			<div class="order-2 space-y-3 md:order-1 md:py-5 md:pl-5 lg:py-6 lg:pl-6">
+				{isSignature && (
+					<span class="inline-flex md:hidden items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground backdrop-blur">
+						<span aria-hidden="true">★</span>
+						Signature
+					</span>
+				)}
 				<h1
-					class="font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground max-md:sr-only lg:text-4xl"
+					class="font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl"
 				>
 					{recipe.data.name}
 				</h1>
@@ -87,6 +75,34 @@ const jsonLd =
 						</p>
 					)
 				}
+				{recipeData && (recipeData.cuisine || recipeData.glass || recipeData.garnish || recipeData.prepTimeMinutes) && (
+					<dl class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+						{recipeData.cuisine && (
+							<div class="flex items-baseline gap-1.5">
+								<dt class="uppercase tracking-wider">Cuisine</dt>
+								<dd class="font-semibold text-foreground">{recipeData.cuisine}</dd>
+							</div>
+						)}
+						{recipeData.glass && (
+							<div class="flex items-baseline gap-1.5">
+								<dt class="uppercase tracking-wider">Glass</dt>
+								<dd class="font-semibold text-foreground">{recipeData.glass}</dd>
+							</div>
+						)}
+						{recipeData.garnish && (
+							<div class="flex items-baseline gap-1.5">
+								<dt class="uppercase tracking-wider">Garnish</dt>
+								<dd class="font-semibold text-foreground">{recipeData.garnish}</dd>
+							</div>
+						)}
+						{recipeData.prepTimeMinutes && (
+							<div class="flex items-baseline gap-1.5">
+								<dt class="uppercase tracking-wider">Prep</dt>
+								<dd class="font-semibold text-foreground">{recipeData.prepTimeMinutes} min</dd>
+							</div>
+						)}
+					</dl>
+				)}
 				{(ingredientCount > 0 || stepCount > 0) && (
 					<dl class="flex gap-6 text-sm text-muted-foreground md:hidden">
 						{ingredientCount > 0 && (
@@ -121,29 +137,9 @@ const jsonLd =
 					class="h-[30svh] max-h-70 min-h-48 w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105 md:h-full md:max-h-none md:min-h-0"
 				/>
 				<div
-					class="pointer-events-none absolute inset-0 bg-linear-to-t from-background via-background/70 to-transparent md:hidden"
-					aria-hidden="true"
-				>
-				</div>
-				<div
 					class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-2/5 bg-linear-to-t from-black/55 to-transparent md:block"
 					aria-hidden="true"
 				>
-				</div>
-				<div class="absolute inset-x-0 bottom-0 space-y-2 px-4 pb-4 md:hidden">
-					{
-						isSignature && (
-							<span class="inline-flex items-center rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground backdrop-blur">
-								Signature
-							</span>
-						)
-					}
-					<p
-						aria-hidden="true"
-						class="font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-					>
-						{recipe.data.name}
-					</p>
 				</div>
 				{
 					isSignature && (
@@ -259,4 +255,8 @@ const jsonLd =
 			}
 		</div>
 	</div>
+
+	{isRecipe && allRecipes && (
+		<RelatedRecipes current={recipe as RecipeType} allRecipes={allRecipes} />
+	)}
 </article>

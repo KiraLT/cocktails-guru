@@ -13,6 +13,13 @@ export interface RecipeData {
 	instructions: string[];
 	tips?: string[];
 	labels?: Array<"signature">;
+	prepTimeMinutes?: number;
+	cuisine?: string;
+	glass?: string;
+	garnish?: string;
+	servingYield?: string;
+	keywords?: string[];
+	published?: string;
 }
 
 export interface Recipe {

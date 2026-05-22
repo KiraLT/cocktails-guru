@@ -3,5 +3,6 @@ Allow: /
 Disallow: /list/
 Disallow: /lists/
 Disallow: /search/
+Disallow: /offline/
 
 Sitemap: https://cocktailsguru.me/sitemap-index.xml

@@ -1,25 +1,51 @@
 ---
+import { getImage } from "astro:assets";
 import { sortBy } from "common-stuff";
 import RecipesGrid from "@/components/recipes-grid.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllRecipes } from "@/lib/recipes-data";
+import { organizationJsonLd } from "@/lib/seo";
 
 const allRecipes = await getAllRecipes();
 const recipes = sortBy(allRecipes, (recipe) =>
 	recipe.data.labels?.includes("signature"),
 );
+
+const heroRecipe =
+	recipes.find((recipe) => recipe.data.labels?.includes("signature")) ??
+	recipes[0];
+
+const ogImage = heroRecipe
+	? await getImage({
+			src: heroRecipe.image,
+			width: 1200,
+			height: 630,
+			format: "jpg",
+			quality: 80,
+			fit: "cover",
+			position: "center",
+		})
+	: undefined;
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const organizationLd = organizationJsonLd(site.toString());
 ---
 
 <BaseLayout
     title="Cocktails Guru — Signature Cocktail Recipes"
     description="Explore our curated selection of exceptional cocktail recipes, discover new favorites, and master the art of cocktail creation."
-    openGraphImage={{
-        url: "/web-app-manifest-512x512.png",
-        width: 512,
-        height: 512,
+    openGraphImage={ogImage ? {
+        url: ogImage.src,
+        width: ogImage.attributes.width,
+        height: ogImage.attributes.height,
         alt: "Cocktails Guru",
-    }}
+    } : undefined}
 >
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(organizationLd)}
+    />
     <section class="mb-6 md:mb-8">
         <h1 class="font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Signature Cocktails

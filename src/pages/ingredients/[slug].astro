@@ -3,6 +3,12 @@ import { getImage } from "astro:assets";
 import RecipeView from "@/components/recipe/view.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllIngredients } from "@/lib/ingredients-data";
+import {
+	breadcrumbJsonLd,
+	cleanText,
+	ingredientArticleJsonLd,
+	truncateDescription,
+} from "@/lib/seo";
 import type { Ingredient } from "@/types/content";
 
 export async function getStaticPaths() {
@@ -26,17 +32,36 @@ const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 const ogImage = await getImage({
 	src: ingredient.image,
 	width: 1200,
+	height: 630,
 	format: "jpg",
 	quality: 80,
+	fit: "cover",
+	position: "center",
 });
-const cleanDescription = ingredient.data.description
-	?.replace(/\s+/g, " ")
-	.trim();
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const canonicalUrl = new URL(Astro.url.pathname, site).toString();
+const fullDescription = cleanText(ingredient.data.description);
+const metaDescription = truncateDescription(fullDescription, 155);
+
+const articleLd = ingredientArticleJsonLd(ingredient, {
+	siteUrl: site.toString(),
+	canonicalUrl,
+	imageUrl: new URL(ogImage.src, site).toString(),
+});
+
+const breadcrumbLd = breadcrumbJsonLd(
+	[
+		{ name: "Home", url: "/" },
+		{ name: ingredient.data.name, url: Astro.url.pathname },
+	],
+	site.toString(),
+);
 ---
 
 <BaseLayout
     title={`${ingredient.data.name} | Cocktails Guru`}
-    description={cleanDescription}
+    description={metaDescription}
     ogType="article"
     openGraphImage={{
         url: ogImage.src,
@@ -45,5 +70,15 @@ const cleanDescription = ingredient.data.description
         alt: ingredient.data.name,
     }}
 >
-	<RecipeView recipe={ingredient} ingredientIndex={ingredientIndex} />
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(articleLd)}
+    />
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(breadcrumbLd)}
+    />
+    <RecipeView recipe={ingredient} ingredientIndex={ingredientIndex} />
 </BaseLayout>
