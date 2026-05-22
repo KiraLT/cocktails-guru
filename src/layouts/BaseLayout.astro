@@ -31,13 +31,6 @@ gtag('js', new Date());
 
 gtag('config', '${gaId}');`
 	: "";
-const swScript = `if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-            registrations.forEach((registration) => registration.unregister());
-        }).catch(() => {});
-    })
-}`;
 ---
 
 <html lang="en">
@@ -56,7 +49,7 @@ const swScript = `if ('serviceWorker' in navigator) {
         />
         <meta name="theme-color" content="#0d1117" />
         <link rel="canonical" href={canonicalUrl} />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -106,6 +99,7 @@ const swScript = `if ('serviceWorker' in navigator) {
             ></script>
         ) : null}
         {showGa ? <script is:inline set:html={analyticsScript} /> : null}
+        <script is:inline src="/registerSW.js"></script>
     </head>
     <body>
         <script type="application/ld+json" is:inline set:html={websiteJsonLd} />
@@ -132,6 +126,5 @@ const swScript = `if ('serviceWorker' in navigator) {
                 </footer>
             </div>
         </div>
-        <script is:inline set:html={swScript} />
     </body>
 </html>

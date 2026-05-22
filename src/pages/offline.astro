@@ -1,0 +1,36 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="Offline | Cocktails Guru"
+    description="You're offline. Recipes you've already opened are still available."
+    robots="noindex, nofollow"
+>
+    <div class="flex min-h-[60svh] flex-col items-center justify-center py-8 text-center">
+        <span class="text-6xl font-serif font-semibold tracking-tight text-primary md:text-8xl">
+            🍸
+        </span>
+        <h1 class="mt-4 font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            You're offline
+        </h1>
+        <p class="mt-2 max-w-md text-sm text-muted-foreground md:text-base">
+            This page isn't cached yet. Recipes and lists you've already opened
+            are still available from your device.
+        </p>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+                href="/"
+                class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+                Go home
+            </a>
+            <a
+                href="/lists/"
+                class="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+                My lists
+            </a>
+        </div>
+    </div>
+</BaseLayout>
