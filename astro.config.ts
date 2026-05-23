@@ -82,7 +82,7 @@ export default defineConfig({
 		react(),
 		sitemap({
 			filter: (page) =>
-				!/\/(list|lists|search|offline)\/?$/.test(new URL(page).pathname),
+				!/^\/(list|lists|search|offline)(\/.*)?$/.test(new URL(page).pathname),
 			serialize(item) {
 				const lastmod = lastModForPath(new URL(item.url).pathname);
 				if (lastmod) item.lastmod = lastmod;

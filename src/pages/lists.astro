@@ -2,6 +2,9 @@
 import { FaPlus } from "react-icons/fa6";
 import ListsContent from "@/components/pages/ListsContent";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllRecipes } from "@/lib/recipes-data";
+
+const recipes = await getAllRecipes();
 ---
 
 <BaseLayout
@@ -26,5 +29,5 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
             <span>Create list</span>
         </a>
     </section>
-    <ListsContent client:idle />
+    <ListsContent recipes={recipes} client:idle />
 </BaseLayout>

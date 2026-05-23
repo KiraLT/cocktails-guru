@@ -80,23 +80,19 @@ body {
 }
 
 @media print {
-	html {
-		color-scheme: light;
+	@page {
+		margin: 0;
+		size: A4;
 	}
 
-	:root {
-		--background: 0 0% 100%;
-		--foreground: 0 0% 0%;
-		--card: 0 0% 100%;
-		--card-foreground: 0 0% 0%;
-		--popover: 0 0% 100%;
-		--popover-foreground: 0 0% 0%;
-		--muted: 0 0% 96%;
-		--muted-foreground: 0 0% 25%;
-		--accent: 0 0% 96%;
-		--accent-foreground: 0 0% 0%;
-		--border: 0 0% 80%;
-		--input: 0 0% 80%;
+	* {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	html,
+	body {
+		background: hsl(var(--background));
 	}
 
 	nav,
@@ -111,31 +107,9 @@ body {
 		padding: 0;
 	}
 
-	a {
-		color: #000;
-		text-decoration: none;
-	}
-
 	a[href^="http"]::after {
 		content: " (" attr(href) ")";
 		font-size: 0.85em;
-		color: #555;
-	}
-
-	img {
-		max-height: 6cm;
-		object-fit: contain;
-		page-break-inside: avoid;
-	}
-
-	h1,
-	h2,
-	h3 {
-		page-break-after: avoid;
-	}
-
-	section,
-	li {
-		page-break-inside: avoid;
+		opacity: 0.6;
 	}
 }
