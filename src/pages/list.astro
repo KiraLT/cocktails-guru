@@ -1,9 +1,14 @@
 ---
 import ListContent from "@/components/pages/ListContent";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllIngredients } from "@/lib/ingredients-data";
 import { getAllRecipes } from "@/lib/recipes-data";
 
-const recipes = await getAllRecipes();
+const [recipes, ingredients] = await Promise.all([
+	getAllRecipes(),
+	getAllIngredients(),
+]);
+const yamlIngredientSlugs = ingredients.map((i) => i.slug);
 ---
 
 <BaseLayout
@@ -11,5 +16,9 @@ const recipes = await getAllRecipes();
     description="Create your unique cocktail recipe lists, share your mixology passion, and inspire others. Our 'Create and Share Cocktails' page lets you craft personalized cocktail lists to share with the world. Start your mixology journey with us today!"
     robots="noindex, nofollow"
 >
-    <ListContent recipes={recipes} client:load />
+    <ListContent
+        recipes={recipes}
+        yamlIngredientSlugs={yamlIngredientSlugs}
+        client:idle
+    />
 </BaseLayout>

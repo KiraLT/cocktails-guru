@@ -5,6 +5,7 @@ import {
 	FaShareFromSquare,
 } from "react-icons/fa6";
 import { EditList } from "@/components/pages/EditList";
+import { ShoppingList } from "@/components/pages/ShoppingList";
 import { Recipes } from "@/components/recipes";
 import { Share } from "@/components/share";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,8 +27,10 @@ import type { Recipe } from "@/types/content";
 
 export default function ListContent({
 	recipes: allRecipes,
+	yamlIngredientSlugs,
 }: {
 	recipes: Recipe[];
+	yamlIngredientSlugs: string[];
 }) {
 	const [query, setQuery] = useState<Record<string, string> | undefined>(
 		undefined,
@@ -88,7 +91,15 @@ export default function ListContent({
 					</AlertDescription>
 				</Alert>
 			) : (
-				<Recipes recipes={recipes} />
+				<>
+					<Recipes recipes={recipes} />
+					<div className="mt-10">
+						<ShoppingList
+							recipes={recipes}
+							yamlIngredientSlugs={yamlIngredientSlugs}
+						/>
+					</div>
+				</>
 			)}
 
 			<Dialog open={shareOpen} onOpenChange={setShareOpen}>

@@ -3,6 +3,7 @@ import { getImage } from "astro:assets";
 import { sortBy } from "common-stuff";
 import RecipesGrid from "@/components/recipes-grid.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { recipesBySpirit, SPIRITS, type Spirit } from "@/lib/categories";
 import { getAllRecipes } from "@/lib/recipes-data";
 import { organizationJsonLd } from "@/lib/seo";
 
@@ -10,6 +11,13 @@ const allRecipes = await getAllRecipes();
 const recipes = sortBy(allRecipes, (recipe) =>
 	recipe.data.labels?.includes("signature"),
 );
+
+const spiritCounts: { slug: Spirit; name: string; count: number }[] =
+	SPIRITS.map((spirit) => ({
+		slug: spirit.slug,
+		name: spirit.name,
+		count: recipesBySpirit(allRecipes, spirit.slug).length,
+	})).filter((entry) => entry.count > 0);
 
 const heroRecipe =
 	recipes.find((recipe) => recipe.data.labels?.includes("signature")) ??
@@ -55,5 +63,27 @@ const organizationLd = organizationJsonLd(site.toString());
             balance, and easy home mixing.
         </p>
     </section>
+
+    <nav class="mb-6 flex flex-wrap items-center gap-2 md:mb-8" aria-label="Browse by base spirit">
+        <span class="text-xs uppercase tracking-[0.18em] text-muted-foreground mr-1">
+            Browse
+        </span>
+        {spiritCounts.map((entry) => (
+            <a
+                href={`/cocktails/${entry.slug}/`}
+                class="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/40 px-3 py-1 text-xs font-medium text-foreground transition-colors hover:border-border hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+                {entry.name}
+                <span class="text-muted-foreground tabular-nums">{entry.count}</span>
+            </a>
+        ))}
+        <a
+            href="/ingredients/"
+            class="inline-flex items-center rounded-full border border-border/60 bg-card/40 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-accent/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+            By ingredient
+        </a>
+    </nav>
+
     {recipes.length > 0 && <RecipesGrid recipes={recipes} />}
 </BaseLayout>

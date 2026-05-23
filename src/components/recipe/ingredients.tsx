@@ -1,7 +1,5 @@
 import { titleCase } from "common-stuff";
 import { useEffect, useState } from "react";
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import {
 	Select,
 	SelectContent,
@@ -9,45 +7,16 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { parseQuantity, stringifyQuantity } from "@/lib/ingredients-utils";
+import { type Scale, useIngredientsStore } from "@/lib/ingredients-store";
+import {
+	convertQuantity,
+	ingredientSlug,
+	parseQuantity,
+	stringifyQuantity,
+	type VolumeUnit,
+} from "@/lib/ingredients-utils";
 import { cn } from "@/lib/utils";
 import type { Ingredient } from "@/types/content";
-
-type Units = "oz" | "ml";
-type Scale = 1 | 2 | 3 | 4;
-
-const ML_PER_OZ = 30;
-
-const useIngredientsStore = create(
-	persist<{
-		units: Units;
-		scale: Scale;
-		setUnits: (units: Units) => void;
-		setScale: (scale: Scale) => void;
-	}>(
-		(set) => ({
-			units: "oz",
-			scale: 1,
-			setUnits: (units) => set({ units }),
-			setScale: (scale) => set({ scale }),
-		}),
-		{ name: "recipe-ingredients-store" },
-	),
-);
-
-function convertQuantity(
-	value: number,
-	fromUnit: string,
-	toUnit: Units,
-): [number, string] {
-	if (fromUnit === "oz" && toUnit === "ml") {
-		return [Math.round(value * ML_PER_OZ), "ml"];
-	}
-	if (fromUnit === "ml" && toUnit === "oz") {
-		return [Math.round((value / ML_PER_OZ) * 100) / 100, "oz"];
-	}
-	return [value, fromUnit];
-}
 
 export function Ingredients({
 	ingredients,
@@ -58,16 +27,20 @@ export function Ingredients({
 	ingredientIndex: Record<string, Ingredient>;
 	className?: string;
 }) {
-	const { units, scale, setUnits, setScale } = useIngredientsStore();
+	const store = useIngredientsStore();
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	if (!mounted) {
-		return null;
-	}
+	// Before hydration we render with deterministic defaults so the static
+	// HTML contains the ingredient links (crawlable, accessible to no-JS users)
+	// and we don't get a hydration mismatch from the persisted store.
+	const units: VolumeUnit = mounted ? store.units : "oz";
+	const scale: Scale = mounted ? store.scale : 1;
+	const setUnits = store.setUnits;
+	const setScale = store.setScale;
 
 	return (
 		<section
@@ -115,8 +88,12 @@ export function Ingredients({
 			</div>
 
 			<ul className="mt-4 space-y-2">
-				{Object.entries(ingredients).map(([slug, quantity]) => {
-					const ingredient = ingredientIndex[slug];
+				{Object.entries(ingredients).map(([rawName, quantity]) => {
+					const linkSlug = ingredientSlug(rawName);
+					const yamlMatch =
+						ingredientIndex[rawName] ?? ingredientIndex[linkSlug];
+					const displayName =
+						yamlMatch?.data.name ?? titleCase(rawName.split("-").join(" "));
 					const [rawValue, rawUnits] = parseQuantity(quantity);
 					const scaledValue = rawValue * scale;
 					const [converted, convertedUnits] = convertQuantity(
@@ -129,26 +106,20 @@ export function Ingredients({
 						: quantity;
 
 					return (
-						<li key={slug}>
+						<li key={rawName}>
 							<label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 bg-background/50 px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/40">
 								<input
 									type="checkbox"
 									className="h-4 w-4 shrink-0 rounded border-input accent-primary"
 								/>
 								<span className="min-w-0 flex-1">
-									{ingredient ? (
-										<a
-											href={`/ingredients/${slug}/`}
-											className="font-medium text-foreground hover:underline"
-											onClick={(event) => event.stopPropagation()}
-										>
-											{ingredient.data.name}
-										</a>
-									) : (
-										<span className="font-medium text-foreground">
-											{titleCase(slug.split("-").join(" "))}
-										</span>
-									)}
+									<a
+										href={`/ingredients/${linkSlug}/`}
+										className="font-medium text-foreground hover:underline"
+										onClick={(event) => event.stopPropagation()}
+									>
+										{displayName}
+									</a>
 								</span>
 								<span className="shrink-0 text-sm tabular-nums text-muted-foreground">
 									{formatted}

@@ -1,0 +1,46 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="About | Cocktails Guru"
+    description="What Cocktails Guru is, and why it exists."
+>
+    <section class="prose mb-6 max-w-2xl md:mb-8">
+        <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">About</p>
+        <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            About Cocktails Guru
+        </h1>
+    </section>
+
+    <div class="max-w-2xl space-y-4 text-sm leading-relaxed text-foreground/90 md:text-base">
+        <p>
+            Cocktails Guru is a small, curated catalogue of cocktail recipes
+            built for home mixing. The goal is a fast, ad-free reference you
+            can pull up at the bar — no autoplay videos, no life story above
+            every recipe.
+        </p>
+
+        <p>
+            Every recipe lists ingredients with measurements in oz or ml,
+            scales for 1× to 4× servings, and works offline once visited.
+            Lists you build stay on your device.
+        </p>
+
+        <p>
+            The project is open source. The source, content, and image
+            licences are available on
+            <a
+                href="https://github.com/KiraLT/cocktails-guru"
+                rel="nofollow noopener"
+                target="_blank"
+                class="text-primary hover:underline"
+            >GitHub</a>.
+        </p>
+
+        <p>
+            If a recipe is wrong, missing, or you have a classic that belongs
+            in the catalogue, open an issue or pull request.
+        </p>
+    </div>
+</BaseLayout>

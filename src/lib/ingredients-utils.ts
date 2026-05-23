@@ -1,3 +1,31 @@
+export function ingredientSlug(raw: string): string {
+	return raw
+		.normalize("NFKD")
+		.replace(/\p{Mark}/gu, "")
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+
+export type VolumeUnit = "oz" | "ml";
+
+const ML_PER_OZ = 30;
+
+export function convertQuantity(
+	value: number,
+	fromUnit: string,
+	toUnit: VolumeUnit,
+): [number, string] {
+	if (fromUnit === "oz" && toUnit === "ml") {
+		return [Math.round(value * ML_PER_OZ), "ml"];
+	}
+	if (fromUnit === "ml" && toUnit === "oz") {
+		return [Math.round((value / ML_PER_OZ) * 100) / 100, "oz"];
+	}
+	return [value, fromUnit];
+}
+
 const specialNumbers: Record<string, number> = {
 	"1/2": 0.5,
 	"1/4": 0.25,

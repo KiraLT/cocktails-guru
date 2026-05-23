@@ -1,8 +1,12 @@
 ---
 import { getImage } from "astro:assets";
 import RecipeView from "@/components/recipe/view.astro";
+import RecipesGrid from "@/components/recipes-grid.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllIngredients } from "@/lib/ingredients-data";
+import {
+	getAllIngredientStubs,
+	type IngredientStub,
+} from "@/lib/all-ingredients";
 import {
 	breadcrumbJsonLd,
 	cleanText,
@@ -12,15 +16,19 @@ import {
 import type { Ingredient } from "@/types/content";
 
 export async function getStaticPaths() {
-	const ingredients = await getAllIngredients();
-	return ingredients.map((ingredient) => ({
-		params: { slug: ingredient.slug },
-		props: { ingredient },
+	const stubs = await getAllIngredientStubs();
+	return stubs.map((stub) => ({
+		params: { slug: stub.slug },
+		props: { stub },
 	}));
 }
 
-const { ingredient } = Astro.props;
-const ingredients = await getAllIngredients();
+const { stub } = Astro.props as { stub: IngredientStub };
+const fullIngredient = stub.full;
+
+const ingredients = (await getAllIngredientStubs())
+	.map((s) => s.full)
+	.filter((v): v is Ingredient => Boolean(v));
 const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 	(acc, entry) => {
 		acc[entry.slug] = entry;
@@ -29,46 +37,63 @@ const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 	{},
 );
 
-const ogImage = await getImage({
-	src: ingredient.image,
-	width: 1200,
-	height: 630,
-	format: "jpg",
-	quality: 80,
-	fit: "cover",
-	position: "center",
-});
+const ogImage = fullIngredient
+	? await getImage({
+			src: fullIngredient.image,
+			width: 1200,
+			height: 630,
+			format: "jpg",
+			quality: 80,
+			fit: "cover",
+			position: "center",
+		})
+	: undefined;
 
 const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
 const canonicalUrl = new URL(Astro.url.pathname, site).toString();
-const fullDescription = cleanText(ingredient.data.description);
-const metaDescription = truncateDescription(fullDescription, 155);
+const fullDescription = cleanText(fullIngredient?.data.description);
+const defaultDescription = `${stub.name} cocktail ingredient — used in ${stub.recipes.length} ${stub.recipes.length === 1 ? "cocktail" : "cocktails"} on Cocktails Guru.`;
+const metaDescription = truncateDescription(
+	fullDescription || defaultDescription,
+	155,
+);
 
-const articleLd = ingredientArticleJsonLd(ingredient, {
-	siteUrl: site.toString(),
-	canonicalUrl,
-	imageUrl: new URL(ogImage.src, site).toString(),
-});
+const articleLd = fullIngredient
+	? ingredientArticleJsonLd(fullIngredient, {
+			siteUrl: site.toString(),
+			canonicalUrl,
+			imageUrl: ogImage
+				? new URL(ogImage.src, site).toString()
+				: new URL("/web-app-manifest-512x512.png", site).toString(),
+		})
+	: {
+			"@context": "https://schema.org",
+			"@type": "Article",
+			headline: `${stub.name} — Cocktail Ingredient`,
+			description: defaultDescription,
+			mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+		};
 
 const breadcrumbLd = breadcrumbJsonLd(
 	[
 		{ name: "Home", url: "/" },
-		{ name: ingredient.data.name, url: Astro.url.pathname },
+		{ name: "Ingredients", url: "/ingredients/" },
+		{ name: stub.name, url: Astro.url.pathname },
 	],
 	site.toString(),
 );
 ---
 
 <BaseLayout
-    title={`${ingredient.data.name} | Cocktails Guru`}
+    title={`${stub.name} | Cocktails Guru`}
     description={metaDescription}
     ogType="article"
-    openGraphImage={{
+    openGraphImage={ogImage ? {
         url: ogImage.src,
         width: ogImage.attributes.width,
         height: ogImage.attributes.height,
-        alt: ingredient.data.name,
-    }}
+        alt: stub.name,
+    } : undefined}
 >
     <script
         type="application/ld+json"
@@ -80,5 +105,29 @@ const breadcrumbLd = breadcrumbJsonLd(
         is:inline
         set:html={JSON.stringify(breadcrumbLd)}
     />
-    <RecipeView recipe={ingredient} ingredientIndex={ingredientIndex} />
+
+    {fullIngredient ? (
+        <RecipeView recipe={fullIngredient} ingredientIndex={ingredientIndex} />
+    ) : (
+        <section class="mb-10">
+            <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Ingredient
+            </p>
+            <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                {stub.name}
+            </h1>
+            <p class="mt-3 max-w-prose text-sm text-muted-foreground md:text-base">
+                {defaultDescription}
+            </p>
+        </section>
+    )}
+
+    {stub.recipes.length > 0 && (
+        <section class="mt-10 space-y-4 md:mt-12 md:space-y-5">
+            <h2 class="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+                Cocktails using {stub.name}
+            </h2>
+            <RecipesGrid recipes={stub.recipes} />
+        </section>
+    )}
 </BaseLayout>

@@ -1,0 +1,71 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { recipesBySpirit, SPIRITS, type Spirit } from "@/lib/categories";
+import { getAllRecipes } from "@/lib/recipes-data";
+import { breadcrumbJsonLd } from "@/lib/seo";
+
+const recipes = await getAllRecipes();
+const counts: Record<Spirit, number> = SPIRITS.reduce(
+	(acc, spirit) => {
+		acc[spirit.slug] = recipesBySpirit(recipes, spirit.slug).length;
+		return acc;
+	},
+	{} as Record<Spirit, number>,
+);
+const totalRecipes = recipes.length;
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const breadcrumbLd = breadcrumbJsonLd(
+	[
+		{ name: "Home", url: "/" },
+		{ name: "Cocktails", url: "/cocktails/" },
+	],
+	site.toString(),
+);
+---
+
+<BaseLayout
+    title="Browse Cocktails by Base Spirit | Cocktails Guru"
+    description={`Browse our ${totalRecipes} cocktail recipes by base spirit — tequila, rum, gin, vodka, whiskey, and aperitivo.`}
+>
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(breadcrumbLd)}
+    />
+    <section class="mb-6 md:mb-8">
+        <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            Browse
+        </p>
+        <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Cocktails by base spirit
+        </h1>
+        <p class="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+            Pick the bottle on your shelf and dig into the cocktails it builds.
+        </p>
+    </section>
+
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {SPIRITS.filter((s) => counts[s.slug] > 0).map((spirit) => (
+            <li>
+                <a
+                    href={`/cocktails/${spirit.slug}/`}
+                    class="group block rounded-xl border border-border/60 bg-card/40 p-5 transition-colors hover:border-border hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    <div class="flex items-baseline justify-between gap-3">
+                        <h2 class="font-serif text-xl font-semibold text-foreground">
+                            {spirit.name}
+                        </h2>
+                        <span class="text-xs text-muted-foreground tabular-nums">
+                            {counts[spirit.slug]}
+                            {counts[spirit.slug] === 1 ? " recipe" : " recipes"}
+                        </span>
+                    </div>
+                    <p class="mt-1.5 text-sm text-muted-foreground">
+                        {spirit.tagline}
+                    </p>
+                </a>
+            </li>
+        ))}
+    </ul>
+</BaseLayout>

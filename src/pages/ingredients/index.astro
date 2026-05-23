@@ -1,0 +1,58 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllIngredientStubs } from "@/lib/all-ingredients";
+import { breadcrumbJsonLd } from "@/lib/seo";
+
+const stubs = await getAllIngredientStubs();
+const totalRecipes = new Set(stubs.flatMap((s) => s.recipes.map((r) => r.slug)))
+	.size;
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const breadcrumbLd = breadcrumbJsonLd(
+	[
+		{ name: "Home", url: "/" },
+		{ name: "Ingredients", url: "/ingredients/" },
+	],
+	site.toString(),
+);
+---
+
+<BaseLayout
+    title="Cocktail Ingredients | Cocktails Guru"
+    description={`Browse every ingredient used in our ${totalRecipes} cocktail recipes. Find what to mix with the bottles already on your shelf.`}
+>
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(breadcrumbLd)}
+    />
+    <section class="mb-6 md:mb-8">
+        <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            Ingredients
+        </p>
+        <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Cocktail ingredients
+        </h1>
+        <p class="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+            Every spirit, mixer, and modifier used across our recipes.
+            Click an ingredient to see the cocktails that use it.
+        </p>
+    </section>
+
+    <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {stubs.map((stub) => (
+            <li>
+                <a
+                    href={`/ingredients/${stub.slug}/`}
+                    class="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3 transition-colors hover:border-border hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    <span class="font-medium text-foreground">{stub.name}</span>
+                    <span class="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {stub.recipes.length}
+                        {stub.recipes.length === 1 ? " cocktail" : " cocktails"}
+                    </span>
+                </a>
+            </li>
+        ))}
+    </ul>
+</BaseLayout>

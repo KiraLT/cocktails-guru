@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import {
 	FaBars,
+	FaBottleDroplet,
 	FaGithub,
 	FaHouse,
 	FaList,
 	FaMagnifyingGlass,
+	FaMartiniGlassCitrus,
 } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +28,8 @@ type NavLink = {
 
 const links: NavLink[] = [
 	{ name: "Home", href: "/", icon: <FaHouse /> },
+	{ name: "Cocktails", href: "/cocktails/", icon: <FaMartiniGlassCitrus /> },
+	{ name: "Ingredients", href: "/ingredients/", icon: <FaBottleDroplet /> },
 	{ name: "Lists", href: "/lists/", icon: <FaList /> },
 	{
 		name: "GitHub",

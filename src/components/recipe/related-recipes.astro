@@ -31,12 +31,13 @@ const scored = allRecipes
 	.slice(0, max)
 	.map(({ recipe }) => recipe);
 
-const fallback = scored.length > 0
-	? scored
-	: allRecipes
-			.filter((recipe) => recipe.slug !== current.slug)
-			.filter((recipe) => recipe.data.labels?.includes("signature"))
-			.slice(0, max);
+const fallback =
+	scored.length > 0
+		? scored
+		: allRecipes
+				.filter((recipe) => recipe.slug !== current.slug)
+				.filter((recipe) => recipe.data.labels?.includes("signature"))
+				.slice(0, max);
 
 const related = fallback;
 ---

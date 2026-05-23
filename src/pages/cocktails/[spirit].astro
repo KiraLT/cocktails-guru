@@ -1,0 +1,64 @@
+---
+import { sortBy } from "common-stuff";
+import RecipesGrid from "@/components/recipes-grid.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { recipesBySpirit, SPIRITS } from "@/lib/categories";
+import { getAllRecipes } from "@/lib/recipes-data";
+import { breadcrumbJsonLd } from "@/lib/seo";
+
+export async function getStaticPaths() {
+	const allRecipes = await getAllRecipes();
+	return SPIRITS.map((spirit) => {
+		const recipes = sortBy(recipesBySpirit(allRecipes, spirit.slug), (recipe) =>
+			recipe.data.labels?.includes("signature"),
+		);
+		return {
+			params: { spirit: spirit.slug },
+			props: { spirit, recipes },
+		};
+	}).filter(({ props }) => props.recipes.length > 0);
+}
+
+const { spirit, recipes } = Astro.props as {
+	spirit: (typeof SPIRITS)[number];
+	recipes: Awaited<ReturnType<typeof getAllRecipes>>;
+};
+
+const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
+const breadcrumbLd = breadcrumbJsonLd(
+	[
+		{ name: "Home", url: "/" },
+		{ name: "Cocktails", url: "/cocktails/" },
+		{ name: spirit.name, url: Astro.url.pathname },
+	],
+	site.toString(),
+);
+---
+
+<BaseLayout
+    title={`${spirit.name} Cocktails | Cocktails Guru`}
+    description={`${spirit.description} ${recipes.length} ${recipes.length === 1 ? "recipe" : "recipes"} curated for home mixing.`}
+>
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(breadcrumbLd)}
+    />
+    <section class="mb-6 md:mb-8">
+        <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            <a href="/cocktails/" class="hover:text-foreground transition-colors">
+                Cocktails
+            </a>
+            <span aria-hidden="true"> / </span>
+            <span>{spirit.name}</span>
+        </p>
+        <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            {spirit.name} cocktails
+        </h1>
+        <p class="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+            {spirit.description}
+        </p>
+    </section>
+
+    <RecipesGrid recipes={recipes} />
+</BaseLayout>

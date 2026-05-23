@@ -1,0 +1,83 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const lastUpdated = "2026-05-23";
+---
+
+<BaseLayout
+    title="Terms | Cocktails Guru"
+    description="Terms of use for Cocktails Guru."
+>
+    <section class="mb-6 md:mb-8">
+        <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">Terms</p>
+        <h1 class="mt-2 font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Terms of use
+        </h1>
+        <p class="mt-2 text-xs text-muted-foreground">Last updated {lastUpdated}.</p>
+    </section>
+
+    <div class="max-w-2xl space-y-6 text-sm leading-relaxed text-foreground/90 md:text-base">
+        <section>
+            <h2 class="font-serif text-lg font-semibold">Recipes are reference material</h2>
+            <p class="mt-2">
+                Recipes are provided as-is for personal, non-commercial use.
+                Measurements, techniques, and ingredient brand recommendations
+                reflect common bartending practice but are not professional
+                advice. Adjust to taste, use what's on your shelf, and trust
+                your palate.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-serif text-lg font-semibold">Drink responsibly</h2>
+            <p class="mt-2">
+                These recipes contain alcohol. Do not consume alcohol if you
+                are under the legal drinking age where you live, pregnant,
+                taking medication that interacts with alcohol, or planning to
+                drive. Know your limits and the limits of the people you're
+                pouring for.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-serif text-lg font-semibold">No warranty</h2>
+            <p class="mt-2">
+                The site is provided on an "as is" basis without warranty of
+                any kind. The maintainers are not liable for any loss or
+                damage arising from use of the site or any recipe on it.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-serif text-lg font-semibold">Open source</h2>
+            <p class="mt-2">
+                Source code is licensed under the terms in the project's
+                <a
+                    href="https://github.com/KiraLT/cocktails-guru/blob/main/LICENSE"
+                    rel="nofollow noopener"
+                    target="_blank"
+                    class="text-primary hover:underline"
+                >LICENSE</a> file. Recipe text and photography
+                may have separate terms — see the repository for details.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-serif text-lg font-semibold">Third-party links</h2>
+            <p class="mt-2">
+                Outbound links to product pages and external resources are
+                provided for convenience. Inclusion is not an endorsement,
+                and we have no control over the content or availability of
+                those sites.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-serif text-lg font-semibold">Changes</h2>
+            <p class="mt-2">
+                These terms may be updated. The most recent version always
+                lives at this URL with the "last updated" date above.
+            </p>
+        </section>
+    </div>
+</BaseLayout>

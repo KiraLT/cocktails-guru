@@ -17,11 +17,14 @@ function gitLastModified(relativePath: string): string | undefined {
 	let result: string | undefined;
 	if (existsSync(absolute)) {
 		try {
-			const out = execSync(`git log -1 --format=%cI -- ${JSON.stringify(absolute)}`, {
-				encoding: "utf8",
-				cwd: ROOT,
-				stdio: ["ignore", "pipe", "ignore"],
-			}).trim();
+			const out = execSync(
+				`git log -1 --format=%cI -- ${JSON.stringify(absolute)}`,
+				{
+					encoding: "utf8",
+					cwd: ROOT,
+					stdio: ["ignore", "pipe", "ignore"],
+				},
+			).trim();
 			result = out || undefined;
 		} catch {
 			result = undefined;

@@ -27,9 +27,7 @@ const ingredientCount = recipe.data.ingredients
 const stepCount = recipe.data.instructions?.length ?? 0;
 const cleanDescription = recipe.data.description?.replace(/\s+/g, " ").trim();
 const isRecipe = "ingredients" in recipe.data && "instructions" in recipe.data;
-const recipeData = isRecipe
-	? (recipe.data as RecipeType["data"])
-	: undefined;
+const recipeData = isRecipe ? (recipe.data as RecipeType["data"]) : undefined;
 ---
 
 <article class="space-y-8 md:space-y-10">
@@ -249,7 +247,7 @@ const recipeData = isRecipe
 						ingredients={recipe.data.ingredients}
 						ingredientIndex={ingredientIndex}
 						className="lg:sticky lg:top-20"
-						client:load
+						client:visible
 					/>
 				)
 			}
