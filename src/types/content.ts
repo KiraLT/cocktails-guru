@@ -1,4 +1,7 @@
 import type { ImageMetadata } from "astro";
+import type { IngredientData, RecipeData } from "@/content.config";
+
+export type { IngredientData, RecipeData };
 
 export interface ImageRef {
 	src: string;
@@ -6,39 +9,10 @@ export interface ImageRef {
 	height: number;
 }
 
-export interface RecipeData {
-	name: string;
-	description?: string;
-	ingredients: Record<string, string>;
-	instructions: string[];
-	tips?: string[];
-	labels?: Array<"signature">;
-	prepTimeMinutes?: number;
-	cuisine?: string;
-	glass?: string;
-	garnish?: string;
-	servingYield?: string;
-	keywords?: string[];
-	published?: string;
-}
-
 export interface Recipe {
 	slug: string;
 	data: RecipeData;
 	image: ImageMetadata;
-}
-
-export interface IngredientData {
-	name: string;
-	description?: string;
-	ingredients?: Record<string, string>;
-	instructions?: string[];
-	tips?: string[];
-	recommended?: {
-		name: string;
-		url: string;
-		description: string;
-	}[];
 }
 
 export interface Ingredient {

@@ -1,12 +1,10 @@
 ---
 import { getImage } from "astro:assets";
+import type { InferGetStaticPropsType } from "astro";
 import RecipeView from "@/components/recipe/view.astro";
 import RecipesGrid from "@/components/recipes-grid.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import {
-	getAllIngredientStubs,
-	type IngredientStub,
-} from "@/lib/all-ingredients";
+import { getAllIngredientStubs } from "@/lib/all-ingredients";
 import {
 	breadcrumbJsonLd,
 	cleanText,
@@ -23,7 +21,8 @@ export async function getStaticPaths() {
 	}));
 }
 
-const { stub } = Astro.props as { stub: IngredientStub };
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { stub } = Astro.props as Props;
 const fullIngredient = stub.full;
 
 const ingredients = (await getAllIngredientStubs())

@@ -1,24 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import type { List } from "@/controllers/lists";
-import { deleteListByName, getAllLists, getListUrl } from "@/controllers/lists";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
+import { getListUrl } from "@/lib/list";
+import { useListsStore } from "@/lib/lists-store";
 
 export default function ListsContent() {
-	const [lists, setLists] = useState<List[] | null>(null);
+	const hydrated = useHydrated();
+	const lists = useListsStore((s) => s.lists);
+	const remove = useListsStore((s) => s.remove);
 
-	const loadLists = useCallback(() => {
-		setLists(getAllLists());
-	}, []);
-
-	useEffect(() => {
-		loadLists();
-	}, [loadLists]);
-
-	if (lists === null) {
-		return null;
-	}
+	if (!hydrated) return null;
 
 	if (lists.length === 0) {
 		return (
@@ -35,6 +27,7 @@ export default function ListsContent() {
 		<ul className="grid gap-3 sm:grid-cols-2">
 			{lists.map((list) => {
 				const count = list.recipes.length;
+				const displayName = list.name || "Unnamed list";
 				return (
 					<li
 						key={list.name}
@@ -45,7 +38,7 @@ export default function ListsContent() {
 							className="min-w-0 flex-1 focus-visible:outline-none"
 						>
 							<p className="truncate text-base font-semibold text-foreground group-hover:underline">
-								{list.name || "Unnamed list"}
+								{displayName}
 							</p>
 							<p className="mt-0.5 text-xs text-muted-foreground">
 								{count} {count === 1 ? "recipe" : "recipes"}
@@ -54,16 +47,11 @@ export default function ListsContent() {
 						<Button
 							variant="ghost"
 							size="icon"
-							aria-label={`Delete ${list.name || "Unnamed list"}`}
+							aria-label={`Delete ${displayName}`}
 							className="text-muted-foreground hover:text-destructive"
 							onClick={() => {
-								if (
-									window.confirm(
-										`Delete list "${list.name || "Unnamed list"}"?`,
-									)
-								) {
-									deleteListByName(list.name);
-									loadLists();
+								if (window.confirm(`Delete list "${displayName}"?`)) {
+									remove(list.name);
 								}
 							}}
 						>

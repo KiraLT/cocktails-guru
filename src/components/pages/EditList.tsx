@@ -11,8 +11,7 @@ import ReactSortableModule from "react-sortablejs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { List } from "@/controllers/lists";
-import { getListRecipes } from "@/controllers/lists";
+import { getListRecipes, type List } from "@/lib/list";
 import type { Recipe } from "@/types/content";
 
 type SortableItem = { id: string };

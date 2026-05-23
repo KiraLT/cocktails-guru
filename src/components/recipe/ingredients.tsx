@@ -1,5 +1,4 @@
 import { titleCase } from "common-stuff";
-import { useEffect, useState } from "react";
 import {
 	Select,
 	SelectContent,
@@ -7,6 +6,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { type Scale, useIngredientsStore } from "@/lib/ingredients-store";
 import {
 	convertQuantity,
@@ -18,6 +18,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { Ingredient } from "@/types/content";
 
+const DEFAULT_UNITS: VolumeUnit = "oz";
+const DEFAULT_SCALE: Scale = 1;
+
 export function Ingredients({
 	ingredients,
 	ingredientIndex,
@@ -27,20 +30,14 @@ export function Ingredients({
 	ingredientIndex: Record<string, Ingredient>;
 	className?: string;
 }) {
+	const hydrated = useHydrated();
 	const store = useIngredientsStore();
-	const [mounted, setMounted] = useState(false);
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	// Before hydration we render with deterministic defaults so the static
-	// HTML contains the ingredient links (crawlable, accessible to no-JS users)
+	// Pre-hydration we render with deterministic defaults so the static HTML
+	// contains the ingredient links (crawlable, accessible to no-JS users)
 	// and we don't get a hydration mismatch from the persisted store.
-	const units: VolumeUnit = mounted ? store.units : "oz";
-	const scale: Scale = mounted ? store.scale : 1;
-	const setUnits = store.setUnits;
-	const setScale = store.setScale;
+	const units = hydrated ? store.units : DEFAULT_UNITS;
+	const scale = hydrated ? store.scale : DEFAULT_SCALE;
 
 	return (
 		<section
@@ -59,7 +56,7 @@ export function Ingredients({
 				<div className="flex items-center gap-2">
 					<Select
 						value={String(scale)}
-						onValueChange={(value) => setScale(Number(value) as Scale)}
+						onValueChange={(value) => store.setScale(Number(value) as Scale)}
 					>
 						<SelectTrigger className="h-8 w-20 rounded-full text-xs">
 							<SelectValue />
@@ -74,7 +71,7 @@ export function Ingredients({
 
 					<Select
 						value={units}
-						onValueChange={(value) => setUnits(value as Units)}
+						onValueChange={(value) => store.setUnits(value as VolumeUnit)}
 					>
 						<SelectTrigger className="h-8 w-20 rounded-full text-xs">
 							<SelectValue />
@@ -94,15 +91,11 @@ export function Ingredients({
 						ingredientIndex[rawName] ?? ingredientIndex[linkSlug];
 					const displayName =
 						yamlMatch?.data.name ?? titleCase(rawName.split("-").join(" "));
-					const [rawValue, rawUnits] = parseQuantity(quantity);
-					const scaledValue = rawValue * scale;
-					const [converted, convertedUnits] = convertQuantity(
-						scaledValue,
-						rawUnits,
-						units,
-					);
-					const formatted = Number.isFinite(converted)
-						? stringifyQuantity(converted, convertedUnits)
+					const parsed = parseQuantity(quantity);
+					const scaled = { ...parsed, amount: parsed.amount * scale };
+					const converted = convertQuantity(scaled.amount, scaled.unit, units);
+					const formatted = Number.isFinite(converted.amount)
+						? stringifyQuantity(converted)
 						: quantity;
 
 					return (

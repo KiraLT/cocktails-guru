@@ -52,17 +52,17 @@ export function aggregateShoppingList(
 				item.usedIn.push({ slug: recipe.slug, name: recipe.data.name });
 			}
 
-			const [rawAmount, rawUnit] = parseQuantity(quantity);
-			const scaledAmount = rawAmount * scale;
-			if (Number.isFinite(scaledAmount) && scaledAmount > 0 && rawUnit) {
-				const [amount, unit] = targetUnits
-					? convertQuantity(scaledAmount, rawUnit, targetUnits)
-					: [scaledAmount, rawUnit];
-				const existing = item.combined.find((c) => c.unit === unit);
+			const parsed = parseQuantity(quantity);
+			const scaledAmount = parsed.amount * scale;
+			if (Number.isFinite(scaledAmount) && scaledAmount > 0 && parsed.unit) {
+				const converted = targetUnits
+					? convertQuantity(scaledAmount, parsed.unit, targetUnits)
+					: { amount: scaledAmount, unit: parsed.unit };
+				const existing = item.combined.find((c) => c.unit === converted.unit);
 				if (existing) {
-					existing.amount += amount;
+					existing.amount += converted.amount;
 				} else {
-					item.combined.push({ amount, unit });
+					item.combined.push(converted);
 				}
 			} else {
 				item.freeform.push({ quantity, recipe: recipe.data.name });
@@ -76,8 +76,8 @@ export function aggregateShoppingList(
 }
 
 export function formatCombined(combined: ShoppingItem["combined"]): string {
-	if (combined.length === 0) return "";
 	return combined
-		.map(({ amount, unit }) => stringifyQuantity(amount, unit).trim())
+		.map((entry) => stringifyQuantity(entry))
+		.filter(Boolean)
 		.join(", ");
 }

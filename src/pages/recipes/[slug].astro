@@ -1,5 +1,6 @@
 ---
 import { getImage } from "astro:assets";
+import type { InferGetStaticPropsType } from "astro";
 import RecipeView from "@/components/recipe/view.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllIngredients } from "@/lib/ingredients-data";
@@ -10,7 +11,7 @@ import {
 	recipeJsonLd,
 	truncateDescription,
 } from "@/lib/seo";
-import type { Ingredient, Recipe } from "@/types/content";
+import type { Ingredient } from "@/types/content";
 
 export async function getStaticPaths() {
 	const recipes = await getAllRecipes();
@@ -20,10 +21,8 @@ export async function getStaticPaths() {
 	}));
 }
 
-const { recipe, allRecipes } = Astro.props as {
-	recipe: Recipe;
-	allRecipes: Recipe[];
-};
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { recipe, allRecipes } = Astro.props as Props;
 const ingredients = await getAllIngredients();
 const ingredientIndex = ingredients.reduce<Record<string, Ingredient>>(
 	(acc, ingredient) => {

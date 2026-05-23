@@ -1,4 +1,5 @@
 ---
+import type { InferGetStaticPropsType } from "astro";
 import { sortBy } from "common-stuff";
 import RecipesGrid from "@/components/recipes-grid.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -19,10 +20,8 @@ export async function getStaticPaths() {
 	}).filter(({ props }) => props.recipes.length > 0);
 }
 
-const { spirit, recipes } = Astro.props as {
-	spirit: (typeof SPIRITS)[number];
-	recipes: Awaited<ReturnType<typeof getAllRecipes>>;
-};
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { spirit, recipes } = Astro.props as Props;
 
 const site = Astro.site ?? new URL(import.meta.env.PUBLIC_SITE_URL ?? "/");
 const breadcrumbLd = breadcrumbJsonLd(

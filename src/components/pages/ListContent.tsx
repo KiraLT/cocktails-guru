@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
 	FaCircleInfo,
 	FaPenToSquare,
 	FaShareFromSquare,
 } from "react-icons/fa6";
-import { EditList } from "@/components/pages/EditList";
 import { ShoppingList } from "@/components/pages/ShoppingList";
 import { Recipes } from "@/components/recipes";
-import { Share } from "@/components/share";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +15,17 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {
-	getListFromUrlQuery,
-	getListRecipes,
-	getListUrl,
-	replaceList,
-} from "@/controllers/lists";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
+import { getListRecipes, getListUrl, parseListFromParams } from "@/lib/list";
+import { useListsStore } from "@/lib/lists-store";
 import type { Recipe } from "@/types/content";
+
+const EditList = lazy(() =>
+	import("@/components/pages/EditList").then((m) => ({ default: m.EditList })),
+);
+const Share = lazy(() =>
+	import("@/components/share").then((m) => ({ default: m.Share })),
+);
 
 export default function ListContent({
 	recipes: allRecipes,
@@ -32,36 +34,35 @@ export default function ListContent({
 	recipes: Recipe[];
 	yamlIngredientSlugs: string[];
 }) {
-	const [query, setQuery] = useState<Record<string, string> | undefined>(
-		undefined,
-	);
+	const hydrated = useHydrated();
+	const upsert = useListsStore((s) => s.upsert);
+	const [list, setList] = useState<ReturnType<typeof parseListFromParams>>({
+		name: "",
+		recipes: [],
+	});
 	const [shareOpen, setShareOpen] = useState(false);
 	const [editOpen, setEditOpen] = useState(false);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
-		setQuery(Object.fromEntries(params.entries()));
+		setList(parseListFromParams(params));
 	}, []);
 
-	const list = useMemo(
-		() => (query ? getListFromUrlQuery(query) : undefined),
-		[query],
-	);
 	const recipes = useMemo(
-		() => (list ? getListRecipes(list, allRecipes) : []),
+		() => getListRecipes(list, allRecipes),
 		[list, allRecipes],
 	);
 
-	if (!list) {
-		return null;
-	}
+	if (!hydrated) return null;
+
+	const displayName = list.name || "Unnamed list";
 
 	return (
 		<>
 			<section className="mb-6 flex flex-wrap items-center justify-between gap-3 md:mb-8">
 				<div className="min-w-0 flex-1">
 					<h1 className="truncate font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-						{list.name || "Unnamed list"}
+						{displayName}
 					</h1>
 					<p className="mt-2 text-sm text-muted-foreground md:text-base">
 						{recipes.length} {recipes.length === 1 ? "recipe" : "recipes"}
@@ -110,7 +111,7 @@ export default function ListContent({
 							Anyone with this link can view the list.
 						</DialogDescription>
 					</DialogHeader>
-					<Share />
+					<Suspense fallback={null}>{shareOpen && <Share />}</Suspense>
 				</DialogContent>
 			</Dialog>
 
@@ -122,20 +123,21 @@ export default function ListContent({
 							Rename, add or remove recipes, and reorder.
 						</DialogDescription>
 					</DialogHeader>
-					<EditList
-						list={list}
-						allRecipes={allRecipes}
-						onSave={(next) => {
-							replaceList(list, next);
-							const nextUrl = getListUrl(next);
-							window.history.replaceState(null, "", nextUrl);
-							setQuery({
-								n: next.name,
-								r: next.recipes.join(" "),
-							});
-							setEditOpen(false);
-						}}
-					/>
+					<Suspense fallback={null}>
+						{editOpen && (
+							<EditList
+								list={list}
+								allRecipes={allRecipes}
+								onSave={(next) => {
+									upsert(next, list.name);
+									const nextUrl = getListUrl(next);
+									window.history.replaceState(null, "", nextUrl);
+									setList(next);
+									setEditOpen(false);
+								}}
+							/>
+						)}
+					</Suspense>
 				</DialogContent>
 			</Dialog>
 		</>

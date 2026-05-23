@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { FaCircleInfo } from "react-icons/fa6";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { useIngredientsStore } from "@/lib/ingredients-store";
 import { aggregateShoppingList, formatCombined } from "@/lib/shopping-list";
 import type { Recipe } from "@/types/content";
@@ -12,15 +12,10 @@ export function ShoppingList({
 	recipes: Recipe[];
 	yamlIngredientSlugs: string[];
 }) {
+	const hydrated = useHydrated();
 	const store = useIngredientsStore();
-	const [mounted, setMounted] = useState(false);
-
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	const scale = mounted ? store.scale : 1;
-	const units = mounted ? store.units : "oz";
+	const scale = hydrated ? store.scale : 1;
+	const units = hydrated ? store.units : "oz";
 
 	const items = aggregateShoppingList(recipes, new Set(yamlIngredientSlugs), {
 		scale,
@@ -46,7 +41,7 @@ export function ShoppingList({
 				</h2>
 				<span className="text-xs text-muted-foreground tabular-nums">
 					{items.length} {items.length === 1 ? "ingredient" : "ingredients"}
-					{mounted && scale > 1 ? ` · ${scale}× scale` : ""}
+					{hydrated && scale > 1 ? ` · ${scale}× scale` : ""}
 				</span>
 			</header>
 

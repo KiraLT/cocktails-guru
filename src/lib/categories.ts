@@ -13,11 +13,12 @@ export interface SpiritDefinition {
 	name: string;
 	tagline: string;
 	description: string;
-	match: (ingredients: string[]) => boolean;
+	keywords: string[];
+	excludeKeywords?: string[];
+	requireNoBaseSpirit?: boolean;
 }
 
-const has = (ingredients: string[], pattern: RegExp): boolean =>
-	ingredients.some((ing) => pattern.test(ing));
+const BASE_SPIRITS = ["rum", "gin", "vodka", "tequila", "whiskey", "bourbon"];
 
 export const SPIRITS: SpiritDefinition[] = [
 	{
@@ -26,7 +27,7 @@ export const SPIRITS: SpiritDefinition[] = [
 		tagline: "Agave-driven margaritas, palomas, and mules.",
 		description:
 			"Cocktails built on silver tequila — bright, citrus-forward, and unmistakably agave.",
-		match: (ings) => has(ings, /\btequila\b/),
+		keywords: ["tequila"],
 	},
 	{
 		slug: "rum",
@@ -34,7 +35,7 @@ export const SPIRITS: SpiritDefinition[] = [
 		tagline: "Sugar-cane classics from daiquiri to mai tai.",
 		description:
 			"Recipes featuring white, dark, spiced, or coconut rum — the backbone of tiki and Caribbean drinks.",
-		match: (ings) => has(ings, /\brum\b/),
+		keywords: ["rum"],
 	},
 	{
 		slug: "gin",
@@ -42,14 +43,15 @@ export const SPIRITS: SpiritDefinition[] = [
 		tagline: "Botanical, bittersweet, and herbaceous.",
 		description:
 			"Gin-based cocktails — from gin & tonic crispness to Negroni bittersweetness.",
-		match: (ings) => has(ings, /(^|\s)gin($|\s)/) && !has(ings, /ginger/),
+		keywords: ["gin"],
+		excludeKeywords: ["ginger"],
 	},
 	{
 		slug: "vodka",
 		name: "Vodka",
 		tagline: "Clean, neutral, and endlessly mixable.",
 		description: "Vodka-based recipes — from espresso martinis to mules.",
-		match: (ings) => has(ings, /\bvodka\b/),
+		keywords: ["vodka"],
 	},
 	{
 		slug: "whiskey",
@@ -57,7 +59,7 @@ export const SPIRITS: SpiritDefinition[] = [
 		tagline: "Bourbon and rye in classic form.",
 		description:
 			"Whiskey, bourbon, and rye cocktails — old-fashioned territory.",
-		match: (ings) => has(ings, /\b(whiskey|whisky|bourbon|rye)\b/),
+		keywords: ["whiskey", "whisky", "bourbon", "rye"],
 	},
 	{
 		slug: "aperitif",
@@ -65,19 +67,46 @@ export const SPIRITS: SpiritDefinition[] = [
 		tagline: "Bittersweet sippers built around Aperol, Campari, and amari.",
 		description:
 			"Aperitivo-style cocktails featuring bittersweet liqueurs like Aperol, Campari, amaretto, or Midori.",
-		match: (ings) =>
-			has(ings, /\b(aperol|campari|amaretto|midori|cointreau|prosecco)\b/) &&
-			!has(ings, /\b(rum|gin|vodka|tequila|whiskey|bourbon)\b/),
+		keywords: [
+			"aperol",
+			"campari",
+			"amaretto",
+			"midori",
+			"cointreau",
+			"prosecco",
+		],
+		requireNoBaseSpirit: true,
 	},
 ];
 
-export function recipeSpirits(recipe: Recipe): Spirit[] {
-	const ings = Object.keys(recipe.data.ingredients ?? {}).map((i) =>
+const wordBoundaryMatch = (haystack: string, needle: string): boolean =>
+	new RegExp(`\\b${needle}\\b`).test(haystack);
+
+const matchesSpirit = (
+	ingredients: string[],
+	spirit: SpiritDefinition,
+): boolean => {
+	const joined = ingredients.join(" ");
+	const hasKeyword = spirit.keywords.some((k) => wordBoundaryMatch(joined, k));
+	if (!hasKeyword) return false;
+	if (spirit.excludeKeywords?.some((k) => joined.includes(k))) return false;
+	if (
+		spirit.requireNoBaseSpirit &&
+		BASE_SPIRITS.some((k) => wordBoundaryMatch(joined, k))
+	) {
+		return false;
+	}
+	return true;
+};
+
+export const recipeSpirits = (recipe: Recipe): Spirit[] => {
+	const ingredients = Object.keys(recipe.data.ingredients ?? {}).map((i) =>
 		i.toLowerCase(),
 	);
-	return SPIRITS.filter((spirit) => spirit.match(ings)).map((s) => s.slug);
-}
+	return SPIRITS.filter((spirit) => matchesSpirit(ingredients, spirit)).map(
+		(s) => s.slug,
+	);
+};
 
-export function recipesBySpirit(recipes: Recipe[], spirit: Spirit): Recipe[] {
-	return recipes.filter((recipe) => recipeSpirits(recipe).includes(spirit));
-}
+export const recipesBySpirit = (recipes: Recipe[], spirit: Spirit): Recipe[] =>
+	recipes.filter((recipe) => recipeSpirits(recipe).includes(spirit));
