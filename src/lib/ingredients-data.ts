@@ -3,13 +3,13 @@ import type { ImageMetadata } from "astro";
 import type { Ingredient } from "@/types/content";
 
 const ingredientImages = import.meta.glob<{ default: ImageMetadata }>(
-	"../content/ingredients/**/image.png",
+	"../content/ingredients/**/image.jpg",
 	{ eager: true },
 );
 
 function resolveIngredientImage(slug: string): ImageMetadata | undefined {
 	const match = Object.entries(ingredientImages).find(([path]) =>
-		path.endsWith(`/ingredients/${slug}/image.png`),
+		path.endsWith(`/ingredients/${slug}/image.jpg`),
 	);
 	return match?.[1].default;
 }

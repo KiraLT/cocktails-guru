@@ -147,12 +147,8 @@ export default defineConfig({
 			},
 			workbox: {
 				globPatterns: [
-					"**/*.{html,js,css,svg,jpg,jpeg,webp,avif,ico,woff2,webmanifest}",
-					"apple-touch-icon.png",
-					"favicon-*.png",
-					"web-app-manifest-*.png",
+					"**/*.{html,js,css,svg,png,jpg,jpeg,webp,avif,ico,woff2,webmanifest}",
 				],
-				globIgnores: ["**/_astro/*.png"],
 				navigateFallback: "/offline/",
 				navigateFallbackDenylist: [/^\/(sitemap|robots\.txt)/],
 				cleanupOutdatedCaches: true,
